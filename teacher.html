@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Giáo viên · Band 7 → 9 Writing Lab</title>
+<style>
+:root{--ink:#1b1e3c;--mut:#666a85;--bg:#f6f3ec;--line:#e4e0d6;--b7:#f2a531;--b9:#12a37f;--acc:#3b3fd8;--bad:#d8453a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--ink);color:#fff;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header b{background:linear-gradient(90deg,var(--b7),var(--b9));padding:3px 10px;border-radius:99px}
+main{max-width:1150px;margin:0 auto;padding:20px 16px 60px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+label{display:grid;gap:4px;font-weight:600;font-size:.86em}input,select{font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:9px;min-width:180px}
+button{font:inherit;font-weight:600;padding:9px 16px;border-radius:99px;border:2px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}button.ghost{background:#fff;color:var(--ink)}
+.msg{margin:14px 0;color:var(--mut)}.err{color:var(--bad);font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}.kpis div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}.kpis b{display:block;font-size:1.6rem}.kpis span{font-size:.82em;color:var(--mut)}
+.wrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;font-size:.9em}th,td{padding:8px 11px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}
+th{background:#faf8f3;cursor:pointer;user-select:none}tbody tr:hover{background:#f3f4ff;cursor:pointer}td.n{font-weight:600}td.wrapc{white-space:pre-wrap;min-width:240px;max-width:420px}
+h2{margin:26px 0 10px;font-size:1.15rem}.pb{display:inline-block;width:70px;height:7px;border-radius:9px;background:#ebe7dc;vertical-align:middle;margin-right:6px;overflow:hidden}.pb i{display:block;height:100%;background:var(--b9)}
+.low{color:var(--bad);font-weight:700}
+.fbgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}.panel h3{margin:0 0 10px;font-size:.95rem}
+.dist{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-variant-numeric:tabular-nums}.dist .tr{height:12px;border-radius:9px;background:#ebe7dc;overflow:hidden}.dist .tr i{display:block;height:100%;background:var(--b7)}
+.st{color:var(--b7);letter-spacing:1px}.st s{color:#d9d4c6;text-decoration:none}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:.8em;font-weight:600;margin:2px 4px 0 0}.pill.up{background:#e9f8f3;color:#0b7a5e}.pill.down{background:#fdecea;color:#a52c22}
+.cmt{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:8px 0}.cmt p{margin:6px 0 0;white-space:pre-wrap}.cmt.neg{border-left:5px solid var(--bad)}
+.two{display:grid;grid-template-columns:auto 1fr auto auto;gap:6px 10px;align-items:center;font-size:.9em;font-variant-numeric:tabular-nums}.split{display:flex;height:12px;border-radius:9px;overflow:hidden;background:#ebe7dc;min-width:80px}.split i{background:var(--b9)}.split u{background:var(--bad)}
+@media(max-width:700px){.fbgrid{grid-template-columns:1fr}}
+.essay{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0}.essay p{white-space:pre-wrap;font-family:Georgia,serif;font-size:1.02em;margin:6px 0 0}.meta{font-size:.82em;color:var(--mut)}
+@media(max-width:700px){.kpis{grid-template-columns:1fr 1fr}}
+details.cb{margin:18px 0}details.cb summary{cursor:pointer;font-weight:600;margin-bottom:10px}td.wide{max-width:640px;min-width:320px}#out button.ghost{margin:0 6px 8px 0}
+</style>
+</head>
+<body>
+<header><b>7 → 9</b><span>Bảng theo dõi của giáo viên</span></header>
+<main>
+  <div class="bar">
+    <label>Mã giáo viên<input id="key" type="password" autocomplete="off"></label>
+    <label>Lớp<select id="cls"><option value="">Tất cả lớp</option></select></label>
+    <button id="go">Tải dữ liệu</button>
+    <button class="ghost" id="csv" hidden>⬇ Tải bảng (.csv)</button>
+    <a class="ghost" href="index.html#/review" target="_blank" rel="noopener" style="align-self:end;padding:8px 12px">Phản hồi của trợ lý AI →</a>
+  </div>
+  <p class="msg" id="msg">Nhập mã giáo viên (TEACHER_KEY trong Code.gs) rồi bấm Tải dữ liệu.</p>
+  <div id="out"></div>
+</main>
+<script src="config.js"></script>
+<script>
+(function () {
+  "use strict";
+  var TECHS = {"TR1":{"n":"Thang “Vì sao – Thì sao”","m":"Task 2"},"TR2":{"n":"Phản đề – phản bác khớp","m":"Task 2"},"TR3":{"n":"Chẩn đoán lỗ hổng lập luận","m":"Task 2"},"TR4":{"n":"Ví dụ có địa chỉ","m":"Task 2"},"TR5":{"n":"Đoạn hai ý, ý nào cũng đến nơi","m":"Task 2"},"CC1":{"n":"Xóa từ nối","m":"Task 2"},"CC2":{"n":"Chuỗi quy chiếu","m":"Task 2"},"CC3":{"n":"Cầu nối giữa đoạn","m":"Task 2"},"LR1":{"n":"Lưới collocation","m":"Task 2"},"LR2":{"n":"Nâng cấp động từ + danh từ","m":"Task 2"},"LR3":{"n":"Sửa collocation sai","m":"Task 2"},"GR1":{"n":"Nén thành cụm danh từ","m":"Task 2"},"GR2":{"n":"Một ý, ba cấu trúc","m":"Task 2"},"GR3":{"n":"Câu không lỗi","m":"Task 2"},"ST1":{"n":"Thang hedging","m":"Task 2"},"ST2":{"n":"Từ hô hào sang phân tích","m":"Task 2"},"PR1":{"n":"Dàn ý 5 phút có ô ngôn ngữ","m":"Task 2"},"PR2":{"n":"Soát bài có giới hạn thời gian","m":"Task 2"},"F2":{"n":"Bài Task 2 hoàn chỉnh","m":"Task 2"},"TA1":{"n":"Chọn và nhóm dữ liệu","m":"Task 1"},"TA2":{"n":"Overview không có con số","m":"Task 1"},"TA3":{"n":"So sánh và định lượng chính xác","m":"Task 1"},"TA4":{"n":"Một dữ liệu, nhiều cách viết","m":"Task 1"},"TA5":{"n":"Mô tả, không suy diễn","m":"Task 1"},"T1C":{"n":"Liên kết trong Task 1","m":"Task 1"},"T1L":{"n":"Ngôn ngữ mô tả chính xác","m":"Task 1"},"T1G":{"n":"Mệnh đề phân từ và mệnh đề quan hệ","m":"Task 1"},"T1M":{"n":"Thì và bị động theo dạng đề","m":"Task 1"},"F1":{"n":"Bài Task 1 hoàn chỉnh","m":"Task 1"}};
+  var NITEMS = 182;
+  var CFG = window.B79_CONFIG || {};
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var hrs = function (sec) { return (sec / 3600).toFixed(1).replace(".", ","); };
+  var paid = [], rows = [], sortKey = "sec", sortDir = -1, list = [];
+
+  if (!CFG.endpoint) $("#msg").innerHTML = '<span class="err">Chưa có địa chỉ Apps Script trong config.js (mục endpoint).</span>';
+
+  $("#go").onclick = function () {
+    if (!CFG.endpoint) return;
+    $("#msg").textContent = "Đang tải…";
+    fetch(CFG.endpoint + (CFG.endpoint.indexOf("?") < 0 ? "?" : "&") + "key=" + encodeURIComponent($("#key").value.trim()))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.error) { $("#msg").innerHTML = '<span class="err">' + esc(d.error) + "</span>"; return; }
+        rows = d.rows || []; paid = d.paid || [];
+        var cl = {}; rows.forEach(function (r) { if (r[2]) cl[r[2]] = 1; });
+        var cur = $("#cls").value;
+        $("#cls").innerHTML = '<option value="">Tất cả lớp</option>' + Object.keys(cl).sort().map(function (c) { return "<option" + (c === cur ? " selected" : "") + ">" + esc(c) + "</option>"; }).join("");
+        $("#msg").textContent = rows.length + " dòng dữ liệu · cập nhật lúc " + new Date().toLocaleTimeString("vi-VN");
+        render();
+      })
+      .catch(function () { $("#msg").innerHTML = '<span class="err">Không tải được. Kiểm tra địa chỉ endpoint và quyền truy cập “Anyone” của Web App.</span>'; });
+  };
+  $("#cls").onchange = render;
+
+  function build() {
+    var cls = $("#cls").value, by = {};
+    rows.forEach(function (r) {
+      if (cls && r[2] !== cls) return;
+      if (r[3] === "contact" || r[3] === "rs" || r[3] === "consent") return;
+      var id = String(r[1]).trim().toLowerCase() + "|" + r[2];
+      var s = by[id] || (by[id] = { name: r[1], cls: r[2], sec: 0, okIds: {}, first: 0, firstOk: 0, techs: {}, wr: 0, words: 0, last: "", items: [], essays: [], phone: "", phoneTs: "" });
+      if (r[0] > s.last) s.last = r[0];
+      if (r[3] === "login" && r[6] === "phone" && r[11] && r[0] >= s.phoneTs) { s.phone = String(r[11]).replace(/\D/g, ""); if (s.phone && s.phone.charAt(0) !== "0") s.phone = "0" + s.phone; s.phoneTs = r[0]; s.noZalo = false; }
+      if (r[3] === "login" && r[6] === "nozalo" && r[0] >= s.phoneTs) { s.phone = ""; s.phoneTs = r[0]; s.noZalo = true; }
+      if (r[3] === "item") {
+        s.sec += +r[9] || 0; s.techs[r[4]] = 1; s.items.push(r);
+        if (+r[7] === 1) s.okIds[r[4] + "/" + r[5]] = 1;
+        if (+r[8] === 1) { s.first++; if (+r[7] === 1) s.firstOk++; }
+      } else if (r[3] === "write" || r[3] === "coach") { s.sec += +r[9] || 0; s.techs[r[4]] = 1; s.wr++; s.words += +r[10] || 0; s.essays.push(r); }
+    });
+    list = Object.keys(by).map(function (k) { var s = by[k]; s.ok = Object.keys(s.okIds).length; s.acc = s.first ? s.firstOk / s.first : -1; s.nt = Object.keys(s.techs).length; return s; });
+  }
+
+  function render() {
+    build();
+    list.sort(function (a, b) { var x = a[sortKey], y = b[sortKey]; return (x > y ? 1 : x < y ? -1 : 0) * sortDir; });
+    var tot = list.reduce(function (a, s) { return a + s.sec; }, 0), nT = Object.keys(TECHS).length, T = CFG.targetHours || 200;
+    var h = '<div class="kpis"><div><b>' + list.length + "</b><span>học sinh</span></div><div><b>" + hrs(tot) + "</b><span>tổng giờ học</span></div><div><b>" + (list.length ? hrs(tot / list.length) : "0") + "</b><span>giờ trung bình / học sinh (mục tiêu " + T + ")</span></div><div><b>" + list.reduce(function (a, s) { return a + s.wr; }, 0) + "</b><span>bài viết đã nộp</span></div></div>";
+    var col = function (k, t) { return '<th data-k="' + k + '">' + t + (sortKey === k ? (sortDir < 0 ? " ▼" : " ▲") : "") + "</th>"; };
+    h += '<div class="wrap"><table><thead><tr>' + col("name", "Họ tên") + col("cls", "Lớp") + col("phone", "Zalo") + col("sec", "Giờ học") + col("ok", "Bài luyện đã đúng") + col("acc", "Đúng lần đầu") + col("nt", "Kỹ thuật đã học") + col("wr", "Bài viết") + col("words", "Số từ đã viết") + col("last", "Lần học gần nhất") + "</tr></thead><tbody>";
+    list.forEach(function (s, i) {
+      h += '<tr data-i="' + i + '"><td class="n">' + esc(s.name) + "</td><td>" + esc(s.cls) + "</td><td>" + (s.phone ? '<a target="_blank" rel="noopener" href="https://zalo.me/' + esc(s.phone) + '">' + esc(s.phone) + "</a>" : s.noZalo ? "Không tham gia" : "–") + '</td><td><span class="pb"><i style="width:' + Math.min(100, s.sec / 36 / T) + '%"></i></span>' + hrs(s.sec) + "</td><td>" + s.ok + "/" + NITEMS + "</td><td" + (s.acc >= 0 && s.acc < 0.6 ? ' class="low"' : "") + ">" + (s.acc < 0 ? "–" : Math.round(s.acc * 100) + "%") + "</td><td>" + s.nt + "/" + nT + "</td><td>" + s.wr + "</td><td>" + s.words + "</td><td>" + (s.last ? new Date(s.last).toLocaleString("vi-VN") : "–") + "</td></tr>";
+    });
+    h += "</tbody></table></div>";
+
+    /* kỹ thuật cả lớp làm sai nhiều nhất ở lần đầu */
+    var tk = {}; list.forEach(function (s) { s.items.forEach(function (r) { if (+r[8] !== 1) return; var t = tk[r[4]] || (tk[r[4]] = { n: 0, ok: 0 }); t.n++; t.ok += +r[7] === 1 ? 1 : 0; }); });
+    var weak = Object.keys(tk).map(function (k) { return { k: k, n: tk[k].n, acc: tk[k].ok / tk[k].n }; }).filter(function (x) { return x.n >= 3; }).sort(function (a, b) { return a.acc - b.acc; }).slice(0, 8);
+    if (weak.length) {
+      h += '<h2>Kỹ thuật cả lớp làm sai nhiều nhất ở lần đầu</h2><div class="wrap"><table><thead><tr><th>Kỹ thuật</th><th>Module</th><th>Lượt làm lần đầu</th><th>Tỉ lệ đúng</th></tr></thead><tbody>';
+      weak.forEach(function (x) { var t = TECHS[x.k] || { n: x.k, m: "" }; h += "<tr><td class=\"n\">" + esc(x.k) + " · " + esc(t.n) + "</td><td>" + esc(t.m) + "</td><td>" + x.n + "</td><td" + (x.acc < 0.6 ? ' class="low"' : "") + ">" + Math.round(x.acc * 100) + "%</td></tr>"; });
+      h += "</tbody></table></div>";
+    }
+    h += contacts();
+    h += feedback();
+    h += research();
+    /* chế độ trả phí: ai đang được bật, và chi phí AI thực tế so với phí công bố */
+    var P = CFG.paid || {}, cost = +P.aiCostPerEssayVND || 0, mk = +P.markup || 2, rate = +P.usdToVnd || 26000, nEss = 0, micro = 0;
+    rows.forEach(function (r) { if (r[3] === "ai") { nEss += +r[9] || 0; micro += +r[10] || 0; } });
+    var vnd = function (n) { return Math.round(n).toLocaleString("vi-VN") + " đ"; }, real = nEss ? micro / 1e6 * rate / nEss : 0;
+    h += "<h2>Chế độ trả phí</h2><p class=\"msg\">Phí đang công bố: <b>" + vnd(cost * mk) + " / bài</b> (chi phí AI khai trong config.js: " + vnd(cost) + " × " + mk + "). " +
+      (nEss ? "Trợ lý AI đã chấm <b>" + nEss + "</b> bài, tổng chi phí thực tế $" + (micro / 1e6).toFixed(3) + ", trung bình <b>" + vnd(real) + " / bài</b> theo tỉ giá " + rate.toLocaleString("vi-VN") + ". Để phí đúng bằng " + mk + " lần chi phí thực tế, đặt aiCostPerEssayVND = " + Math.round(real) + "." : "Chưa có bài nào được trợ lý AI chấm, nên chưa có chi phí thực tế để đối chiếu.") + "</p>";
+    if (paid.length) {
+      h += '<div class="wrap"><table><thead><tr><th>Mã kích hoạt</th><th>Họ tên</th><th>Lớp</th><th>Đã trả</th><th>Đã dùng</th><th>Còn lại</th></tr></thead><tbody>';
+      paid.forEach(function (r) { h += '<tr><td class="n">' + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td><td>" + esc(r[2]) + "</td><td>" + r[3] + "</td><td>" + r[4] + "</td><td" + (r[3] - r[4] <= 0 ? ' class="low"' : "") + ">" + Math.max(0, r[3] - r[4]) + "</td></tr>"; });
+      h += "</tbody></table></div>";
+    } else h += '<p class="msg">Chưa có học sinh nào được bật trả phí. Mở Google Sheet, menu “Band 7→9” → “Bật trả phí cho học sinh…”.</p>';
+    h += '<div id="detail"></div>';
+    $("#out").innerHTML = h; $("#csv").hidden = !list.length;
+    Array.prototype.forEach.call(document.querySelectorAll("th[data-k]"), function (th) { th.onclick = function () { var k = th.getAttribute("data-k"); if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = k === "name" || k === "cls" ? 1 : -1; } render(); }; });
+    if ($("#csvfb")) $("#csvfb").onclick = csvFb;
+    if ($("#csvct")) $("#csvct").onclick = csvCt;
+    rsBind();
+    Array.prototype.forEach.call(document.querySelectorAll("tr[data-i] a"), function (a) { a.onclick = function (e) { e.stopPropagation(); }; });
+    Array.prototype.forEach.call(document.querySelectorAll("tr[data-i]"), function (tr) { tr.onclick = function () { detail(list[+tr.getAttribute("data-i")]); }; });
+  }
+
+  /* ---------- người liên hệ: đăng ký học / trao đổi chuyên môn ---------- */
+  var WHY = { enrol: "Đăng ký học", expert: "Trao đổi chuyên môn", buy: "Mua gói chấm bài, dịch vụ" }, ctList = [];
+  function contacts() {
+    ctList = [];
+    rows.forEach(function (r) {
+      if (r[3] !== "contact") return;
+      var x = {}; try { x = JSON.parse(r[11]) || {}; } catch (e) { x = { msg: String(r[11] || "") }; }
+      ctList.push({ ts: r[0], name: r[1], why: r[6], phone: String(x.phone || ""), email: String(x.email || ""), fb: String(x.fb || ""), msg: String(x.msg || ""), user: String(x.user || "") });
+    });
+    ctList.sort(function (a, b) { return a.ts < b.ts ? 1 : -1; });
+    var h = "<h2>Liên hệ: đăng ký học và trao đổi chuyên môn (" + ctList.length + ")</h2>";
+    if (!ctList.length) return h + '<p class="msg">Chưa có ai gửi form Liên hệ.</p>';
+    var nE = ctList.filter(function (c) { return c.why === "enrol"; }).length;
+    h += '<p class="msg">' + nE + " đăng ký học · " + (ctList.length - nE) + ' liên hệ khác. <button class="ghost" id="csvct">⬇ Tải danh sách (.csv)</button></p><div class="wrap"><table><thead><tr><th>Thời gian</th><th>Họ tên</th><th>Mục đích</th><th>Điện thoại (Zalo)</th><th>Email</th><th>Facebook</th><th>Nội dung</th></tr></thead><tbody>';
+    ctList.forEach(function (c) {
+      var digits = c.phone.replace(/\D/g, ""), url = /^https?:\/\//i.test(c.fb) ? c.fb : /^(www\.|m\.)?(facebook|fb)\.com\//i.test(c.fb) ? "https://" + c.fb : "";
+      h += "<tr style=\"cursor:default\"><td>" + new Date(c.ts).toLocaleString("vi-VN") + '</td><td class="n">' + esc(c.name) + (c.user && c.user !== c.name ? '<div class="meta">tên trên trang: ' + esc(c.user) + "</div>" : "") + "</td><td>" + esc(WHY[c.why] || c.why) + "</td><td>" +
+        (c.phone ? esc(c.phone) + (digits.length >= 9 ? ' · <a target="_blank" rel="noopener" href="https://zalo.me/' + digits + '">Zalo</a>' : "") : "–") + "</td><td>" + (c.email ? '<a href="mailto:' + esc(c.email) + '">' + esc(c.email) + "</a>" : "–") + "</td><td>" +
+        (c.fb ? (url ? '<a target="_blank" rel="noopener" href="' + esc(url) + '">' + esc(c.fb) + "</a>" : esc(c.fb)) : "–") + '</td><td class="wrapc">' + (esc(c.msg) || "–") + "</td></tr>";
+    });
+    return h + "</tbody></table></div>";
+  }
+  function csvCt() {
+    var q = function (v) { return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; };
+    var out = [["Thời gian", "Họ tên", "Mục đích", "Điện thoại (Zalo)", "Email", "Facebook", "Nội dung"].map(q).join(",")];
+    ctList.forEach(function (c) { out.push([c.ts, c.name, WHY[c.why] || c.why, c.phone ? "'" + c.phone : "", c.email, c.fb, c.msg].map(q).join(",")); });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + out.join("\n")], { type: "text/csv;charset=utf-8" })); a.download = "band79-lien-he.csv"; document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  /* ---------- đánh giá và góp ý của người dùng ---------- */
+  var ASPECTS = { ex: "Bài luyện dạng game", exp: "Lời giải thích và bản band 9", coach: "Nâng cấp bài viết (chẩn đoán band)", topic: "Đề bài và chủ đề", ui: "Giao diện, dễ dùng", tech: "Tốc độ, lỗi kỹ thuật", plan: "Lộ trình và theo dõi tiến độ" };
+  var SRC = { item: "sau bài luyện", write: "sau bài viết", coach: "sau khi nâng cấp bài", form: "trang Góp ý" };
+  var fbList = [];
+  var stars = function (n) { n = Math.round(n); return '<span class="st">' + "★★★★★".slice(0, n) + "<s>" + "★★★★★".slice(n) + "</s></span>"; };
+  var avg1 = function (a) { return a.length ? (a.reduce(function (x, y) { return x + y; }, 0) / a.length).toFixed(1).replace(".", ",") : "–"; };
+  function feedback() {
+    var cls = $("#cls").value;
+    fbList = [];
+    rows.forEach(function (r) {
+      if (r[3] !== "rate" || (cls && r[2] !== cls)) return;
+      var star = Math.max(1, Math.min(5, +r[7] || 0)); if (!+r[7]) return;
+      var x = {}; try { x = JSON.parse(r[11]) || {}; } catch (e) { x = { c: String(r[11] || "") }; }
+      fbList.push({ ts: r[0], name: r[1], cls: r[2], tech: r[4], topic: r[5], src: r[6], star: star, up: x.up || [], down: x.down || [], c: String(x.c || "") });
+    });
+    fbList.sort(function (a, b) { return a.ts < b.ts ? 1 : -1; });
+    var h = "<h2>Đánh giá và góp ý của người dùng</h2>";
+    if (!fbList.length) return h + '<p class="msg">Chưa có đánh giá nào. Học sinh được hỏi nhanh sau khi làm xong bài (mỗi ngày tối đa một lần) và có thể gửi bất cứ lúc nào ở mục “Góp ý” trên trang.</p>';
+    var all = fbList.map(function (f) { return f.star; }), happy = all.filter(function (s) { return s >= 4; }).length, sad = all.filter(function (s) { return s <= 2; }).length;
+    h += '<div class="kpis"><div><b>' + avg1(all) + " / 5</b><span>" + stars(all.reduce(function (x, y) { return x + y; }, 0) / all.length) + " điểm trung bình</span></div><div><b>" + all.length + "</b><span>lượt đánh giá</span></div><div><b>" + Math.round(happy / all.length * 100) + "%</b><span>hài lòng (4–5 sao)</span></div><div><b" + (sad ? ' class="low"' : "") + ">" + Math.round(sad / all.length * 100) + "%</b><span>không hài lòng (1–2 sao)</span></div></div>";
+    /* phân bố sao */
+    h += '<div class="fbgrid"><div class="panel"><h3>Phân bố số sao</h3><div class="dist">';
+    [5, 4, 3, 2, 1].forEach(function (n) { var c = all.filter(function (s) { return s === n; }).length; h += "<span>" + n + ' ★</span><span class="tr"><i style="width:' + (c / all.length * 100) + '%"></i></span><span>' + c + "</span>"; });
+    h += "</div></div>";
+    /* từng điểm: hài lòng / chưa hài lòng, xếp theo số lượt chưa hài lòng */
+    var asp = Object.keys(ASPECTS).map(function (k) { return { k: k, up: fbList.filter(function (f) { return f.up.indexOf(k) >= 0; }).length, down: fbList.filter(function (f) { return f.down.indexOf(k) >= 0; }).length }; }).sort(function (a, b) { return b.down - a.down || a.up - b.up; });
+    h += '<div class="panel"><h3>Hài lòng và chưa hài lòng ở điểm nào</h3><div class="two">';
+    asp.forEach(function (a) { var t = a.up + a.down; h += "<span>" + esc(ASPECTS[a.k]) + '</span><span class="split">' + (t ? '<i style="width:' + (a.up / t * 100) + '%"></i><u style="width:' + (a.down / t * 100) + '%"></u>' : "") + "</span><span>👍 " + a.up + "</span><span" + (a.down > a.up ? ' class="low"' : "") + ">👎 " + a.down + "</span>"; });
+    h += "</div></div></div>";
+    /* theo tuần: để thấy trang có tốt lên theo thời gian không */
+    var wk = {}; fbList.forEach(function (f) { var d = new Date(f.ts); if (isNaN(d)) return; d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7); var k = d.getTime(); (wk[k] = wk[k] || []).push(f.star); });
+    var wks = Object.keys(wk).map(Number).sort(function (a, b) { return b - a; }).slice(0, 12);
+    h += '<h2>Mức hài lòng theo tuần</h2><div class="wrap"><table><thead><tr><th>Tuần bắt đầu</th><th>Lượt đánh giá</th><th>Điểm trung bình</th><th>Không hài lòng (1–2 sao)</th></tr></thead><tbody>';
+    wks.forEach(function (k) { var a = wk[k], lo = a.filter(function (s) { return s <= 2; }).length; h += '<tr><td class="n">' + new Date(k).toLocaleDateString("vi-VN") + "</td><td>" + a.length + "</td><td>" + avg1(a) + " " + stars(a.reduce(function (x, y) { return x + y; }, 0) / a.length) + "</td><td" + (lo ? ' class="low"' : "") + ">" + lo + "</td></tr>"; });
+    h += "</tbody></table></div>";
+    /* từng góp ý */
+    var withC = fbList.filter(function (f) { return f.c || f.down.length; });
+    h += "<h2>Gợi ý cải thiện và điểm chưa hài lòng (" + withC.length + ')</h2><p><button class="ghost" id="csvfb">⬇ Tải toàn bộ đánh giá (.csv)</button></p>';
+    if (!withC.length) h += '<p class="msg">Chưa có ai viết gợi ý hoặc đánh dấu điểm chưa hài lòng.</p>';
+    withC.slice(0, 200).forEach(function (f) {
+      h += '<div class="cmt' + (f.star <= 2 ? " neg" : "") + '"><div class="meta">' + stars(f.star) + " · " + esc(f.name) + (f.cls ? " · " + esc(f.cls) : "") + " · " + new Date(f.ts).toLocaleString("vi-VN") + " · " + esc(SRC[f.src] || f.src) + (f.tech && f.tech !== "SITE" ? " (" + esc(f.tech) + (f.topic ? " · " + esc(f.topic) : "") + ")" : "") + "</div>" +
+        f.down.map(function (k) { return '<span class="pill down">👎 ' + esc(ASPECTS[k] || k) + "</span>"; }).join("") + f.up.map(function (k) { return '<span class="pill up">👍 ' + esc(ASPECTS[k] || k) + "</span>"; }).join("") + (f.c ? "<p>" + esc(f.c) + "</p>" : "") + "</div>";
+    });
+    return h;
+  }
+  function csvFb() {
+    var q = function (v) { return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; }, lab = function (a) { return a.map(function (k) { return ASPECTS[k] || k; }).join("; "); };
+    var out = [["Thời gian", "Họ tên", "Lớp", "Số sao", "Hài lòng", "Chưa hài lòng", "Gợi ý", "Lúc đánh giá", "Kỹ thuật", "Chủ đề"].map(q).join(",")];
+    fbList.forEach(function (f) { out.push([f.ts, f.name, f.cls, f.star, lab(f.up), lab(f.down), f.c, SRC[f.src] || f.src, f.tech, f.topic].map(q).join(",")); });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + out.join("\n")], { type: "text/csv;charset=utf-8" })); a.download = "band79-gop-y.csv"; document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  /* ---------- dữ liệu nghiên cứu: chỉ của người học đã đồng ý tham gia, gắn mã ẩn danh ---------- */
+  var PF = { age: ["18–22", "23–30", "31–40", "Trên 40"], job: ["Sinh viên", "Người đi làm", "Giáo viên tiếng Anh", "Khác"], yrs: ["Dưới 5 năm", "5–10 năm", "Trên 10 năm"], cls: ["Tự học", "Lớp của giáo viên phụ trách trang", "Lớp ở nơi khác"], ai: ["Chưa bao giờ", "Vài lần mỗi tháng", "Vài lần mỗi tuần", "Gần như mỗi ngày"] };
+  var PF_TOOLS = ["ChatGPT", "Gemini", "Claude", "Grammarly", "Công cụ dịch", "Khác"];
+  var SKIPWHY = ["Chưa hiểu gợi ý", "Không đồng ý với gợi ý", "Câu của tôi đã ổn", "Chưa biết sửa thế nào", "Muốn làm nhanh", "Lý do khác"];
+  var CB = [
+    ["sess", "Mở trang", "w, h: kích thước màn hình · touch: 1 nếu là màn hình cảm ứng · days: số ngày kể từ khi đồng ý · hrs: tổng giờ đã học · acts: số bài đã làm · paid: 1 nếu đang có mã trả phí"],
+    ["view", "Chuyển trang", "r: trang vừa mở (ví dụ k/TR1, xb/&lt;mã đề&gt;/m là trang bài mẫu). Thời gian ở lại một trang = khoảng cách tới sự kiện kế tiếp"],
+    ["consent", "Đồng ý tham gia", "v: phiên bản lời mời · prior: số bài đã làm trước khi đồng ý"],
+    ["profile", "Hồ sơ người học", "age, job, yrs, cls, ai: chỉ số của lựa chọn (bảng người tham gia đã đổi sang chữ) · tools: công cụ đã dùng · taken: đã thi chưa · mon, w, ov: tháng thi, Writing, Overall gần nhất · goal: band Writing mong muốn · plan: tháng định thi · se1, se2 (tự tin), tr1 (tin nhận xét của máy), tr2 (làm theo máy), dep (phụ thuộc AI): thang 1–5"],
+    ["pulse", "Khảo sát định kỳ (14 ngày)", "n: lần thứ mấy · se1, se2, tr1, tr2 như hồ sơ · use: thấy trang giúp viết tốt hơn · eff: phải suy nghĩ nhiều · thang 1–5"],
+    ["exam", "Điểm thi tự báo", "mon: tháng thi · type: 0 Academic, 1 General · mode: 0 giấy, 1 máy · w, ov, l, r, s: điểm"],
+    ["item", "Bài luyện dạng game", "k: kỹ thuật · tp: chủ đề hoặc mã đề · y: dạng game · ok: 1 nếu đúng · n: lượt thứ mấy · s: số giây"],
+    ["write", "Nộp một bài viết", "id, k, tp, bank: bài nào · fo: kỹ thuật trọng tâm · w: số từ · s: số giây · ck/nck: số mục tự soát đã tick / tổng · n: lần nộp thứ mấy · band_*: ước lượng của máy · proc_*: nhịp viết · text: bài viết"],
+    ["snap", "Bản nháp giữa chừng (5 phút một lần, tối đa 6)", "key: ô đang viết · n: bản thứ mấy · s: giây kể từ lúc mở ô · w: số từ · text"],
+    ["model_open", "Mở bài mẫu hoặc bài đã nộp khi đang viết", "id · what: model / past · s: giây đã viết · w: số từ lúc mở"],
+    ["coach_start", "Bắt đầu phân tích một bài", "sid: mã phiên sửa · m: t1/t2 · scope: full/para · k, tp: nguồn bài · src: paste (dán vào), site (viết trên trang), solo · band_*: ước lượng ban đầu · text"],
+    ["coach_plan", "Danh sách bước sửa", "mode: rule (bộ tự động) / ai (trợ lý AI) · order: thứ tự các bước"],
+    ["coach_chk", "Bấm “Kiểm tra lại” ở một bước", "i: bước thứ mấy · id: đặc trưng · k: kỹ thuật · g: tiêu chí (TR, TA, CC, LR, GR) · base: 1 nếu là mốc nền tảng dưới band 7 · lvl0 → lvl1: mức trước và sau · ok: đạt · changed: có sửa · better: tốt hơn nhưng chưa đạt · nchk: lần kiểm tra thứ mấy · s: giây ở bước này · ex: đã mở ví dụ · sc: đã dùng khung gợi ý · chg_at, chg_del, chg_ins: chỗ đã sửa · proc_* · after: bài sau khi sửa"],
+    ["coach_next", "Rời một bước", "out: pass (đạt), partial (tạm chấp nhận), skip_tried (thử rồi bỏ), skip (bỏ qua không thử) · các trường khác như coach_chk"],
+    ["skip_why", "Lí do bỏ qua một gợi ý", "why: 0 Chưa hiểu gợi ý · 1 Không đồng ý · 2 Câu của tôi đã ổn · 3 Chưa biết sửa thế nào · 4 Muốn làm nhanh · 5 Lý do khác"],
+    ["coach_done", "Tổng kết một vòng sửa", "round · before_*, after_*: ước lượng trước và sau · skip, passed: các bước đã bỏ qua, đã đạt · ai: band do trợ lý AI ước lượng (nếu dùng) · text: bản cuối"],
+    ["coach_ai", "Dùng một lượt chấm của trợ lý AI", "bands: band AI ước lượng · nsteps: số bước AI đề xuất"],
+    ["lab_enter", "Mở một đề trong khu Phân tích đề và lên ý", "rid: mã lượt · m, ty: task và dạng bài · au: 1 đề mẫu, 0 đề riêng · step: bước đang ở"],
+    ["lab_commit", "Lựa chọn TRƯỚC khi trang hiện nhận xét", "step: quiz / own / pick / voc / gr · own: các ý tự viết, lang_l: vi, en, mix · pick, voc, gr: thứ đã chọn kèm xếp loại của trang (ý: v2 mạnh, v1 mỏng, v0 lạc đề, mine tự viết; từ và cấu trúc: best, ok, over, wrong) · offered: mọi lựa chọn trang đưa ra"],
+    ["lab_step", "Rời một bước (trạng thái cuối của bước đó)", "from → to · back: 1 nếu quay lại · bước 1: text (suy nghĩ ban đầu), lang_* · bước 3: own, pick · bước 4: voc · bước 5: gr · bước 6: sent (từng câu: text, uv/ug = từ và cấu trúc đã chọn mà câu thực sự dùng, proc)"],
+    ["lab_re", "Kiểm tra lại một câu ở bước nâng cấp", "id · n: lượt sửa · text · sb: band ước lượng của câu · issues: các chỗ trang đề xuất nâng · chg_*: chỗ đã sửa · proc_*"],
+    ["lab_open", "Mở gợi ý phát triển ý (hint) hoặc câu mẫu band 9 (b9)", "step · id: câu nào · tries: đã tự sửa mấy lượt trước khi mở"],
+    ["lab_fin", "Hoàn thành một đề", "clean: số câu không còn đề xuất · think, own: ngôn ngữ ở bước nghĩ và bước lên ý · sent: các câu cuối kèm sb, issues, tries"],
+    ["solo_start", "Bắt đầu bài viết tự lực", "id: mã đề · m · nth: lần thứ mấy"],
+    ["solo", "Nộp bài viết tự lực (không gợi ý, có tính giờ)", "id, m, ty · exam: 1 nếu là đề thi 2025–2026 · w: số từ · wall: giây từ lúc bắt đầu · over: 1 nếu quá giờ · band_* · proc_* · q: đề · text"],
+    ["solo_drop", "Hủy bài tự lực", "s, w, proc_*"]
+  ];
+  var CBX = "<b>proc_*</b> (nhịp viết trong một ô): open = giây ô được mở · lat = giây trước lần gõ đầu · dur = giây từ lần gõ đầu đến lần gõ cuối · nk = số lần nhập · ins, del = số ký tự thêm, xóa (gõ tiếng Việt bằng Telex làm del tăng) · pa, pch = số lần dán, số ký tự dán · jmp = lần văn bản tăng trên 40 ký tự mà không phải dán · p2, p5 = số quãng dừng từ 2 giây, từ 5 giây · pmx = quãng dừng dài nhất (giây) · typ = giây gõ liên tục · mid = lần sửa ở giữa bài, không phải cuối bài · aw = lần rời ô trên 5 phút · hid = lần chuyển sang tab hay ứng dụng khác · w0 = số từ lúc mở · cv = đường cong [giây, số từ] 30 giây một điểm.<br><b>band_*</b>: est = band chung máy ước lượng · n9/n = số đặc trưng đạt mức band 9 trên tổng số đo được · low = 1 nếu có dấu hiệu dưới band 7 · crit = band theo tiêu chí · lv = mức của từng đặc trưng. Đây là ước lượng của máy, không phải điểm giám khảo.";
+  var RX = null;
+  function rsParse() {
+    var st = {}, key = {}, nNo = 0, bad = 0, orphan = 0;
+    rows.forEach(function (r) {
+      if (r[3] !== "consent") return; var x = {}; try { x = JSON.parse(r[11]) || {}; } catch (e) { x = {}; }
+      if (r[6] === "no") { nNo++; return; } if (!x.pid) return; st[x.pid] = r[6];
+      if (r[6] === "yes" && !key[x.pid]) key[x.pid] = { pid: x.pid, name: String(r[1]), cls: String(r[2]), ts: r[0], v: x.v || "" };
+    });
+    /* một người có thể có hai mã nếu học trên hai thiết bị: gộp theo họ tên + lớp, lấy mã đầu tiên làm mã chính */
+    var canon = {}, byName = {}, alias = {};
+    Object.keys(key).sort(function (a, b) { return key[a].ts < key[b].ts ? -1 : 1; }).forEach(function (pid) { var id = key[pid].name.trim().toLowerCase() + "|" + key[pid].cls; if (!byName[id]) byName[id] = pid; canon[pid] = byName[id]; (alias[byName[id]] = alias[byName[id]] || []).push(pid); });
+    var out = {}; Object.keys(key).forEach(function (pid) { if (st[pid] === "wd") out[canon[pid]] = 1; });
+    var evs = [], seen = {};
+    rows.forEach(function (r) {
+      if (r[3] !== "rs") return; var b; try { b = JSON.parse(r[11]); } catch (e) { bad++; return; }
+      var raw = String(r[1]), pid = canon[raw]; if (!pid) { orphan++; return; } if (out[pid]) return;
+      var id = raw + "|" + b.sid + "|" + b.n; if (seen[id]) return; seen[id] = 1;
+      (b.ev || []).forEach(function (ev) { evs.push({ pid: pid, sid: b.sid, ev: ev }); });
+    });
+    evs.sort(function (a, b) { return a.pid < b.pid ? -1 : a.pid > b.pid ? 1 : (a.ev.t || 0) - (b.ev.t || 0); });
+    var P = {}, cnt = {};
+    Object.keys(alias).forEach(function (pid) { if (!out[pid]) P[pid] = { pid: pid, ts: key[pid].ts, v: key[pid].v, n: 0, first: 0, last: 0, days: {}, prof: null, npulse: 0, exams: [], solos: [] }; });
+    evs.forEach(function (x) { var p = P[x.pid], e = x.ev; cnt[e.e] = (cnt[e.e] || 0) + 1; if (!p) return; p.n++; if (!p.first || e.t < p.first) p.first = e.t; if (e.t > p.last) p.last = e.t; p.days[vn(e.t).slice(0, 10)] = 1;
+      if (e.e === "profile") p.prof = e; else if (e.e === "pulse") p.npulse++; else if (e.e === "exam") p.exams.push(e); else if (e.e === "solo") p.solos.push(e); });
+    RX = { key: key, canon: canon, byName: byName, alias: alias, out: out, st: st, evs: evs, P: P, cnt: cnt, nNo: nNo, bad: bad, orphan: orphan };
+  }
+  var vn = function (t) { return t ? new Date(+t + 7 * 3600e3).toISOString().replace("Z", "+07:00") : ""; };
+  var cell = function (v) { var s = v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v); if (typeof v === "string" && /^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+  function dl(name, text, type) { var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([(type ? "" : "﻿") + text], { type: type || "text/csv;charset=utf-8" })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+  function table(cols, recs) { return [cols.map(cell).join(",")].concat(recs.map(function (o) { return cols.map(function (c) { return cell(o[c]); }).join(","); })).join("\n"); }
+  function flat(ev) { var o = {}; Object.keys(ev).forEach(function (k) { var v = ev[k]; if (v == null || k === "e" || k === "t") return; if (typeof v !== "object") o[k] = v; else if (Array.isArray(v)) o[k] = JSON.stringify(v); else Object.keys(v).forEach(function (kk) { o[k + "_" + kk] = v[kk]; }); }); return o; }
+  function research() {
+    rsParse(); var X = RX, ps = Object.keys(X.P).map(function (k) { return X.P[k]; }), nOut = Object.keys(X.out).length;
+    var h = "<h2>Dữ liệu nghiên cứu</h2>";
+    if (!ps.length && !X.nNo && !nOut) return h + '<p class="msg">Chưa có người học nào trả lời lời mời tham gia nghiên cứu. Lời mời hiện ra sau khi người học làm xong bài đầu tiên.</p>' + codebook();
+    h += '<div class="kpis"><div><b>' + ps.length + "</b><span>người đồng ý tham gia</span></div><div><b>" + X.nNo + "</b><span>lượt không tham gia (không ghi tên)</span></div><div><b>" + nOut + "</b><span>người đã rút</span></div><div><b>" + X.evs.length + "</b><span>sự kiện đã ghi</span></div></div>";
+    h += '<p class="msg">Mọi file tải ở đây chỉ gồm người đã đồng ý và chưa rút, với mã ẩn danh thay cho họ tên. Bảng khóa nối mã với họ tên là file riêng: hãy cất ở nơi khác với dữ liệu phân tích và không gửi kèm khi chia sẻ dữ liệu.</p>';
+    h += '<p><button class="ghost" id="rsev">⬇ Sự kiện quá trình (.csv)</button> <button class="ghost" id="rsjson">⬇ Sự kiện quá trình (.json)</button> <button class="ghost" id="rspp">⬇ Người tham gia và hồ sơ (.csv)</button> <button class="ghost" id="rsact">⬇ Bài luyện và bài viết đã ẩn danh (.csv)</button> <button class="ghost" id="rskey">🔑 Bảng khóa mã ↔ họ tên (.csv)</button></p>';
+    if (nOut) h += '<p class="msg"><span class="low">' + nOut + " người đã rút.</span> Dữ liệu của họ đã được loại khỏi các file tải ở đây. Để xóa hẳn, mở Google Sheet và xóa các dòng có kind = rs mang mã của họ (xem cột “Trạng thái” trong bảng khóa).</p>";
+    if (X.bad || X.orphan) h += '<p class="msg">' + (X.bad ? X.bad + " dòng không đọc được (bị cắt khi lưu). " : "") + (X.orphan ? X.orphan + " dòng mang mã không có bản ghi đồng ý, đã bỏ qua." : "") + "</p>";
+    if (ps.length) {
+      h += '<div class="wrap"><table><thead><tr><th>Mã</th><th>Ngày đồng ý</th><th>Số sự kiện</th><th>Số ngày có học</th><th>Hồ sơ</th><th>Khảo sát định kỳ</th><th>Bài tự lực</th><th>Band tự lực (đầu → gần nhất)</th><th>Điểm thi đã báo</th><th>Lần cuối</th></tr></thead><tbody>';
+      ps.sort(function (a, b) { return b.last - a.last; }).forEach(function (p) { var s = p.solos, b = function (e) { return e.band ? "≈ " + e.band.est : "–"; };
+        h += '<tr style="cursor:default"><td class="n">' + esc(p.pid) + "</td><td>" + new Date(p.ts).toLocaleDateString("vi-VN") + "</td><td>" + p.n + "</td><td>" + Object.keys(p.days).length + "</td><td>" + (p.prof ? "✓" : "–") + "</td><td>" + p.npulse + "</td><td>" + s.length + "</td><td>" + (s.length ? b(s[0]) + (s.length > 1 ? " → " + b(s[s.length - 1]) : "") : "–") + "</td><td>" + (p.exams.length ? p.exams.map(function (e) { return esc(e.mon) + ": W " + e.w; }).join("; ") : "–") + "</td><td>" + (p.last ? new Date(p.last).toLocaleString("vi-VN") : "–") + "</td></tr>"; });
+      h += "</tbody></table></div>";
+      h += '<h2>Số sự kiện theo loại</h2><div class="wrap"><table><thead><tr><th>Sự kiện</th><th>Ý nghĩa</th><th>Số lượt</th></tr></thead><tbody>';
+      CB.forEach(function (c) { if (X.cnt[c[0]]) h += '<tr style="cursor:default"><td class="n">' + c[0] + "</td><td>" + c[1] + "</td><td>" + X.cnt[c[0]] + "</td></tr>"; });
+      h += "</tbody></table></div>";
+    }
+    return h + codebook();
+  }
+  function codebook() { return '<details class="cb"><summary>Bảng mã biến: mỗi sự kiện ghi gì</summary><div class="wrap"><table><thead><tr><th>Sự kiện</th><th>Khi nào</th><th>Các trường</th></tr></thead><tbody>' + CB.map(function (c) { return '<tr style="cursor:default"><td class="n">' + c[0] + '</td><td class="wrapc">' + c[1] + '</td><td class="wrapc wide">' + c[2] + "</td></tr>"; }).join("") + '</tbody></table></div><p class="msg">Mọi sự kiện đều có: pid (mã ẩn danh), time (giờ Việt Nam), t_ms (mốc thời gian dạng số), session (một lần mở trang), event. ' + CBX + "</p></details>"; }
+  function rsBind() {
+    var X = RX; if (!X || !$("#rsev")) return; var day = new Date().toISOString().slice(0, 10);
+    $("#rsev").onclick = function () {
+      var cols = ["pid", "time", "t_ms", "session", "event"], seen = {}, recs = X.evs.map(function (x) { var o = flat(x.ev); Object.keys(o).forEach(function (k) { if (!seen[k]) { seen[k] = 1; cols.push(k); } }); o.pid = x.pid; o.time = vn(x.ev.t); o.t_ms = x.ev.t; o.session = x.sid; o.event = x.ev.e; return o; });
+      dl("band79-nghien-cuu-su-kien-" + day + ".csv", table(cols, recs));
+    };
+    $("#rsjson").onclick = function () { dl("band79-nghien-cuu-su-kien-" + day + ".json", JSON.stringify({ exported: new Date().toISOString(), participants: Object.keys(X.P).length, events: X.evs.map(function (x) { var o = { pid: x.pid, session: x.sid, time: vn(x.ev.t) }; Object.keys(x.ev).forEach(function (k) { o[k] = x.ev[k]; }); return o; }) }), "application/json"); };
+    $("#rspp").onclick = function () {
+      var cols = ["pid", "consent_time", "consent_version", "events", "active_days", "first_event", "last_event", "age", "job", "years_english", "ielts_class", "ai_use", "tools", "taken_ielts", "last_test_month", "last_writing", "last_overall", "goal_writing", "planned_test", "se1", "se2", "tr1", "tr2", "dep", "n_pulse", "n_solo", "solo_first_est", "solo_last_est", "exams"];
+      var recs = Object.keys(X.P).map(function (k) { var p = X.P[k], f = p.prof || {}, lab = function (kk) { return f[kk] == null ? "" : PF[kk][f[kk]]; }, s = p.solos;
+        return { pid: p.pid, consent_time: p.ts, consent_version: p.v, events: p.n, active_days: Object.keys(p.days).length, first_event: vn(p.first), last_event: vn(p.last), age: lab("age"), job: lab("job"), years_english: lab("yrs"), ielts_class: lab("cls"), ai_use: lab("ai"), tools: (f.tools || []).map(function (i) { return PF_TOOLS[i]; }).join("; "), taken_ielts: f.taken == null ? "" : f.taken ? "Đã thi" : "Chưa thi", last_test_month: f.mon, last_writing: f.w, last_overall: f.ov, goal_writing: f.goal, planned_test: f.plan, se1: f.se1, se2: f.se2, tr1: f.tr1, tr2: f.tr2, dep: f.dep, n_pulse: p.npulse, n_solo: s.length, solo_first_est: s.length && s[0].band ? s[0].band.est : "", solo_last_est: s.length && s[s.length - 1].band ? s[s.length - 1].band.est : "", exams: p.exams.length ? p.exams.map(function (e) { return { mon: e.mon, type: e.type, mode: e.mode, w: e.w, ov: e.ov, l: e.l, r: e.r, s: e.s }; }) : "" }; });
+      dl("band79-nghien-cuu-nguoi-tham-gia-" + day + ".csv", table(cols, recs));
+    };
+    $("#rsact").onclick = function () {
+      var cols = ["pid", "time", "kind", "tech", "topic", "type", "ok", "try", "sec", "words", "text"], recs = [];
+      rows.forEach(function (r) { if (["item", "write", "coach", "rate"].indexOf(r[3]) < 0) return; var pid = X.byName[String(r[1]).trim().toLowerCase() + "|" + r[2]]; if (!pid || X.out[pid]) return;
+        recs.push({ pid: pid, time: vn(new Date(r[0]).getTime()), kind: r[3], tech: r[4], topic: r[5], type: r[6], ok: r[7], try: r[8], sec: r[9], words: r[10], text: r[11] == null ? "" : String(r[11]) }); });
+      dl("band79-nghien-cuu-bai-lam-" + day + ".csv", table(cols, recs));
+    };
+    $("#rskey").onclick = function () {
+      if (!confirm("File này nối mã ẩn danh với họ tên thật. Chỉ tải khi cần, cất riêng với dữ liệu phân tích, và không chia sẻ. Tải về?")) return;
+      var recs = Object.keys(X.alias).map(function (pid) { var k = X.key[pid]; return { pid: pid, other_codes: X.alias[pid].filter(function (a) { return a !== pid; }).join("; "), name: k.name, "class": k.cls, consent_time: k.ts, status: X.out[pid] ? "đã rút" : "đang tham gia" }; });
+      dl("band79-BANG-KHOA-" + day + ".csv", table(["pid", "other_codes", "name", "class", "consent_time", "status"], recs));
+    };
+  }
+
+  function detail(s) {
+    var per = {};
+    s.items.forEach(function (r) { var p = per[r[4]] || (per[r[4]] = { att: 0, ok: {}, first: 0, firstOk: 0, sec: 0, wr: 0 }); p.att++; p.sec += +r[9] || 0; if (+r[7] === 1) p.ok[r[5]] = 1; if (+r[8] === 1) { p.first++; if (+r[7] === 1) p.firstOk++; } });
+    s.essays.forEach(function (r) { var p = per[r[4]] || (per[r[4]] = { att: 0, ok: {}, first: 0, firstOk: 0, sec: 0, wr: 0 }); p.wr++; p.sec += +r[9] || 0; });
+    var h = "<h2>" + esc(s.name) + (s.cls ? " · " + esc(s.cls) : "") + '</h2><div class="wrap"><table><thead><tr><th>Kỹ thuật</th><th>Chủ đề đã đúng</th><th>Lượt làm</th><th>Đúng lần đầu</th><th>Bài viết</th><th>Thời gian (phút)</th></tr></thead><tbody>';
+    Object.keys(TECHS).forEach(function (k) { var p = per[k]; if (!p) return; h += '<tr><td class="n">' + k + " · " + esc(TECHS[k].n) + "</td><td>" + Object.keys(p.ok).length + "</td><td>" + p.att + "</td><td>" + (p.first ? Math.round(p.firstOk / p.first * 100) + "%" : "–") + "</td><td>" + p.wr + "</td><td>" + Math.round(p.sec / 60) + "</td></tr>"; });
+    h += "</tbody></table></div>";
+    if (s.essays.length) {
+      h += "<h2>Bài viết đã nộp (" + s.essays.length + ")</h2>";
+      s.essays.slice().reverse().forEach(function (r) {
+        /* bài gửi từ trang học sinh có thể mở đầu bằng dòng "[Ước lượng tự động: …]": tách ra để hiện riêng */
+        var tx = String(r[11] == null ? "" : r[11]), bt = tx.match(/^\[(Ước lượng tự động:[^\]]*)\]\n?/), band = ""; if (bt) { tx = tx.slice(bt[0].length); band = bt[1]; }
+        h += '<div class="essay"><div class="meta">' + new Date(r[0]).toLocaleString("vi-VN") + " · " + esc(r[4]) + " " + esc((TECHS[r[4]] || {}).n || "") + " · " + esc(r[5]) + " · " + r[10] + " từ · " + Math.round((+r[9] || 0) / 60) + " phút · " + (r[3] === "coach" ? "sau khi sửa cùng huấn luyện viên: " + r[7] + "/" + r[8] + " đặc trưng band 9" : "tự soát " + r[7] + " mục") + (band ? " · <b>" + esc(band) + "</b> (máy ước lượng, không phải điểm chấm)" : "") + "</div><p>" + esc(tx) + "</p></div>"; });
+    }
+    $("#detail").innerHTML = h; $("#detail").scrollIntoView({ behavior: "smooth" });
+  }
+
+  $("#csv").onclick = function () {
+    var q = function (v) { return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; };
+    var out = [["Họ tên", "Lớp", "Zalo", "Giờ học", "Bài luyện đã đúng", "Đúng lần đầu (%)", "Kỹ thuật đã học", "Bài viết", "Số từ", "Lần học gần nhất"].map(q).join(",")];
+    list.forEach(function (s) { out.push([s.name, s.cls, s.phone ? "'" + s.phone : s.noZalo ? "Không tham gia" : "", hrs(s.sec), s.ok, s.acc < 0 ? "" : Math.round(s.acc * 100), s.nt, s.wr, s.words, s.last].map(q).join(",")); });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + out.join("\n")], { type: "text/csv;charset=utf-8" })); a.download = "band79-lop.csv"; document.body.appendChild(a); a.click(); a.remove();
+  };
+})();
+</script>
+</body>
+</html>
